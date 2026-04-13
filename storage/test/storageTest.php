@@ -35,6 +35,7 @@ class storageTest extends TestCase
     private static $storage;
     private static $tempBucket;
     private static $objectRetentionBucketName;
+    private static $objectContextBucketName;
 
     public static function setUpBeforeClass(): void
     {
@@ -49,6 +50,12 @@ class storageTest extends TestCase
             self::$projectId,
             time()
         );
+
+        self::$objectContextBucketName = sprintf(
+            '%s_object_contexts-%s',
+            self::$projectId,
+            time()
+        );
     }
 
     public static function tearDownAfterClass(): void
@@ -57,17 +64,20 @@ class storageTest extends TestCase
             $object->delete();
         }
         self::$tempBucket->delete();
-
-        $objectRetentionBucket = self::$storage->bucket(self::$objectRetentionBucketName);
-        foreach ($objectRetentionBucket->objects() as $object) {
-            // Disable object retention before delete
-            $object->update([
-                'retention' => [],
-                'overrideUnlockedRetention' => true
-            ]);
-            $object->delete();
+        if (isset(self::$objectRetentionBucketName)) {
+            $objectRetentionBucket = self::$storage->bucket(self::$objectRetentionBucketName);
+            if ($objectRetentionBucket->exists()) {
+                foreach ($objectRetentionBucket->objects() as $object) {
+                    // Disable object retention before delete
+                    $object->update([
+                        'retention' => [],
+                        'overrideUnlockedRetention' => true
+                    ]);
+                    $object->delete();
+                }
+                $objectRetentionBucket->delete();
+            }
         }
-        $objectRetentionBucket->delete();
     }
 
     public function testBucketAcl()
@@ -224,6 +234,39 @@ class storageTest extends TestCase
             ),
             $output
         );
+    }
+
+    public function testObjectContexts()
+    {
+        $bucketName = self::$objectContextBucketName;
+        self::runFunctionSnippet('create_bucket', [ $bucketName]);
+        $objectContextsBucket = self::$storage->bucket($bucketName);
+        $objectName = $this->requireEnv('GOOGLE_STORAGE_OBJECT') . '.ObjectContexts';
+        $object = $objectContextsBucket->upload('test', [
+            'name' => $objectName,
+        ]);
+        $objectName = $object->info()['name'];
+        $setOutput = $this->runFunctionSnippet('set_storage_object_contexts', [
+            self::$objectContextBucketName,
+            $objectName,
+        ]);
+
+        $this->assertStringContainsString("Contexts for object $objectName were updated", $setOutput);
+
+        $getOutput = $this->runFunctionSnippet('view_storage_object_contexts', [
+            self::$objectContextBucketName,
+            $objectName
+        ]);
+
+        $this->assertStringContainsString('Key: department, Value: finance', $getOutput);
+        $this->assertStringContainsString('Key: priority, Value: high', $getOutput);
+
+        sleep(2);
+
+        $listOutput = $this->runFunctionSnippet('list_storage_object_contexts', [
+            self::$objectContextBucketName
+        ]);
+        $this->assertStringContainsString("Found object: $objectName", $listOutput);
     }
 
     public function testGetBucketClassAndLocation()
