@@ -27,7 +27,7 @@ namespace Google\Cloud\Samples\Storage;
 use Google\Cloud\Storage\StorageClient;
 
 /**
- * Attach or modify contexts to an existing object.
+ *  List objects with a filter based on contexts.
  *
  * @param string $bucketName The name of your Cloud Storage bucket.
  *        (e.g. 'my-bucket')

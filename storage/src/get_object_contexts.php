@@ -27,7 +27,7 @@ namespace Google\Cloud\Samples\Storage;
 use Google\Cloud\Storage\StorageClient;
 
 /**
- * Attach or modify contexts to an existing object.
+ * Retrieve contexts for an existing object.
  *
  * @param string $bucketName The name of your Cloud Storage bucket.
  *        (e.g. 'my-bucket')
@@ -42,7 +42,7 @@ function get_object_contexts(string $bucketName, string $objectName): void
 
     $info = $object->info();
     if (isset($info['contexts']['custom'])) {
-        printf('Contexts for object %s were updated:' . PHP_EOL, $objectName);
+        printf('Contexts for object %s:' . PHP_EOL, $objectName);
         foreach ($info['contexts']['custom'] as $key => $data) {
             printf(' - Key: %s, Value: %s' . PHP_EOL, $key, $data['value']);
             printf(' - Created: %s' . PHP_EOL, $data['createTime']);
