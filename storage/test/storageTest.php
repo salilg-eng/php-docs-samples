@@ -35,7 +35,6 @@ class storageTest extends TestCase
     private static $storage;
     private static $tempBucket;
     private static $objectRetentionBucketName;
-    private static $objectContextBucketName;
 
     public static function setUpBeforeClass(): void
     {
