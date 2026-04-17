@@ -64,20 +64,17 @@ class storageTest extends TestCase
             $object->delete();
         }
         self::$tempBucket->delete();
-        if (isset(self::$objectRetentionBucketName)) {
-            $objectRetentionBucket = self::$storage->bucket(self::$objectRetentionBucketName);
-            if ($objectRetentionBucket->exists()) {
-                foreach ($objectRetentionBucket->objects() as $object) {
-                    // Disable object retention before delete
-                    $object->update([
-                        'retention' => [],
-                        'overrideUnlockedRetention' => true
-                    ]);
-                    $object->delete();
-                }
-                $objectRetentionBucket->delete();
-            }
+
+        $objectRetentionBucket = self::$storage->bucket(self::$objectRetentionBucketName);
+        foreach ($objectRetentionBucket->objects() as $object) {
+            // Disable object retention before delete
+            $object->update([
+                'retention' => [],
+                'overrideUnlockedRetention' => true
+            ]);
+            $object->delete();
         }
+        $objectRetentionBucket->delete();
     }
 
     public function testBucketAcl()
@@ -238,35 +235,61 @@ class storageTest extends TestCase
 
     public function testObjectContexts()
     {
-        $bucketName = self::$objectContextBucketName;
-        self::runFunctionSnippet('create_bucket', [ $bucketName]);
+        $bucketName = self::$bucketName;
         $objectContextsBucket = self::$storage->bucket($bucketName);
-        $objectName = $this->requireEnv('GOOGLE_STORAGE_OBJECT') . '.ObjectContexts';
+        $objectName = 'object-contexts-'.uniqid();
         $object = $objectContextsBucket->upload('test', [
             'name' => $objectName,
         ]);
         $objectName = $object->info()['name'];
-        $setOutput = $this->runFunctionSnippet('set_storage_object_contexts', [
-            self::$objectContextBucketName,
+
+        // Set Object Contexts
+        $setOutput = $this->runFunctionSnippet('set_object_contexts', [
+            $bucketName,
             $objectName,
         ]);
 
         $this->assertStringContainsString("Contexts for object $objectName were updated", $setOutput);
 
-        $getOutput = $this->runFunctionSnippet('view_storage_object_contexts', [
-            self::$objectContextBucketName,
+        // Get Object Contexts
+        $getOutput = $this->runFunctionSnippet('get_object_contexts', [
+            $bucketName,
             $objectName
         ]);
 
         $this->assertStringContainsString('Key: department, Value: finance', $getOutput);
         $this->assertStringContainsString('Key: priority, Value: high', $getOutput);
 
-        sleep(2);
-
-        $listOutput = $this->runFunctionSnippet('list_storage_object_contexts', [
-            self::$objectContextBucketName
+        // List Object Contexts using filter
+        $listOutput = $this->runFunctionSnippet('list_object_contexts', [
+            $bucketName
         ]);
         $this->assertStringContainsString("Found object: $objectName", $listOutput);
+
+        // Clear all contexts on the object.
+        $object->update([
+            'contexts' => [
+                'custom' => [],
+            ],
+        ]);
+        $object->reload();
+
+        $clearedGetOutput = $this->runFunctionSnippet('get_object_contexts', [
+            $bucketName,
+            $objectName
+        ]);
+
+        $this->assertStringNotContainsString('Key: department, Value: finance', $clearedGetOutput);
+        $this->assertStringNotContainsString('Key: priority, Value: high', $clearedGetOutput);
+
+        $clearedInfo = $object->info();
+        $this->assertTrue(empty($clearedInfo['contexts']['custom'] ?? []));
+
+        // List again with filter after clearing contexts.
+        $clearedListOutput = $this->runFunctionSnippet('list_object_contexts', [
+            $bucketName
+        ]);
+        $this->assertEmpty(trim($clearedListOutput));
     }
 
     public function testGetBucketClassAndLocation()

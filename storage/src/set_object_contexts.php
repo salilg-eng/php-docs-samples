@@ -34,7 +34,7 @@ use Google\Cloud\Storage\StorageClient;
  * @param string $objectName The name of your Cloud Storage object.
  *        (e.g. 'my-object')
  */
-function set_storage_object_contexts(string $bucketName, string $objectName): void
+function set_object_contexts(string $bucketName, string $objectName): void
 {
     $storage = new StorageClient();
     $bucket = $storage->bucket($bucketName);

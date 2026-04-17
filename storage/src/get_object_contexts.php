@@ -23,7 +23,7 @@
 
 namespace Google\Cloud\Samples\Storage;
 
-# [START storage_list_object_contexts]
+# [START storage_get_object_contexts]
 use Google\Cloud\Storage\StorageClient;
 
 /**
@@ -31,21 +31,26 @@ use Google\Cloud\Storage\StorageClient;
  *
  * @param string $bucketName The name of your Cloud Storage bucket.
  *        (e.g. 'my-bucket')
+ * @param string $objectName The name of your Cloud Storage object.
+ *        (e.g. 'my-object')
  */
-function list_storage_object_contexts(string $bucketName): void
+function get_object_contexts(string $bucketName, string $objectName): void
 {
     $storage = new StorageClient();
     $bucket = $storage->bucket($bucketName);
+    $object = $bucket->object($objectName);
 
-    // Example filter: find objects where department is finance
-    $options = [
-        'filter' => 'contexts.custom.department.value="finance"'
-    ];
-    foreach ($bucket->objects($options) as $object) {
-        printf('Found object: %s' . PHP_EOL, $object->name());
+    $info = $object->info();
+    if (isset($info['contexts']['custom'])) {
+        printf('Contexts for object %s were updated:' . PHP_EOL, $objectName);
+        foreach ($info['contexts']['custom'] as $key => $data) {
+            printf(' - Key: %s, Value: %s' . PHP_EOL, $key, $data['value']);
+            printf(' - Created: %s' . PHP_EOL, $data['createTime']);
+            printf(' - Updated: %s' . PHP_EOL, $data['updateTime']);
+        }
     }
 }
-# [END storage_list_object_contexts]
+# [END storage_get_object_contexts]
 
 // The following 2 lines are only needed to run the samples
 require_once __DIR__ . '/../../testing/sample_helpers.php';
