@@ -50,12 +50,6 @@ class storageTest extends TestCase
             self::$projectId,
             time()
         );
-
-        self::$objectContextBucketName = sprintf(
-            '%s_object_contexts-%s',
-            self::$projectId,
-            time()
-        );
     }
 
     public static function tearDownAfterClass(): void
