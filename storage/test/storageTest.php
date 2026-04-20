@@ -262,7 +262,7 @@ class storageTest extends TestCase
         // Clear all contexts on the object.
         $object->update([
             'contexts' => [
-                'custom' => [],
+                'custom' => null,
             ],
         ]);
         $object->reload();
