@@ -45,27 +45,27 @@ class ObjectsTest extends TestCase
     public function testObjectContexts()
     {
         $objectContextsBucket = self::$storage->createBucket(
-            sprintf('%s-test-bucket-%s', self::$projectId, time())
+            sprintf('%s-test-bucket-%s', self::$projectId, uniqid())
         );
         $bucketName = $objectContextsBucket->name();
         $objectName = 'object-contexts-'.uniqid();
         $object = $objectContextsBucket->upload('test', [
             'name' => $objectName,
         ]);
-        $objectName = $object->info()['name'];
+        $objectInfo = $object->info()['name'];
 
         // Set Object Contexts
         $setOutput = $this->runFunctionSnippet('set_object_contexts', [
             $bucketName,
-            $objectName,
+            $objectInfo,
         ]);
 
-        $this->assertStringContainsString("Contexts for object $objectName were updated", $setOutput);
+        $this->assertStringContainsString("Contexts for object $objectInfo were updated", $setOutput);
 
         // Get Object Contexts
         $getOutput = $this->runFunctionSnippet('get_object_contexts', [
             $bucketName,
-            $objectName
+            $objectInfo
         ]);
 
         $this->assertStringContainsString('Key: department, Value: finance', $getOutput);
@@ -75,7 +75,7 @@ class ObjectsTest extends TestCase
         $listOutput = $this->runFunctionSnippet('list_object_contexts', [
             $bucketName
         ]);
-        $this->assertStringContainsString("Found object: $objectName", $listOutput);
+        $this->assertStringContainsString("Found object: $objectInfo", $listOutput);
 
         // Clear all contexts on the object.
         $object->update([
@@ -101,6 +101,8 @@ class ObjectsTest extends TestCase
             $bucketName
         ]);
         $this->assertEmpty(trim($clearedListOutput));
+        $object->delete();
+        $objectContextsBucket->delete();
     }
 
     public function testListObjects()

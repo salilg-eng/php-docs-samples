@@ -44,9 +44,9 @@ function get_object_contexts(string $bucketName, string $objectName): void
     if (isset($info['contexts']['custom'])) {
         printf('Contexts for object %s:' . PHP_EOL, $objectName);
         foreach ($info['contexts']['custom'] as $key => $data) {
-            printf(' - Key: %s, Value: %s' . PHP_EOL, $key, $data['value']);
-            printf(' - Created: %s' . PHP_EOL, $data['createTime']);
-            printf(' - Updated: %s' . PHP_EOL, $data['updateTime']);
+            printf(' - Key: %s, Value: %s' . PHP_EOL, $key, $data['value'] ?? '');
+            printf(' - Created: %s' . PHP_EOL, $data['createTime'] ?? '');
+            printf(' - Updated: %s' . PHP_EOL, $data['updateTime'] ?? '');
         }
     }
 }
