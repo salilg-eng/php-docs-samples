@@ -375,6 +375,16 @@ class spannerTest extends TestCase
     /**
      * @depends testInsertData
      */
+    public function testBatchWrite()
+    {
+        $output = $this->runFunctionSnippet('batch_write');
+        $this->assertStringContainsString('Mutation group indexes', $output);
+        $this->assertStringContainsString('have been applied', $output);
+    }
+
+    /**
+     * @depends testInsertData
+     */
     public function testQueryData()
     {
         $output = $this->runFunctionSnippet('query_data');
@@ -480,6 +490,26 @@ class spannerTest extends TestCase
         $output = $this->runFunctionSnippet('read_write_transaction');
         $this->assertStringContainsString('Setting first album\'s budget to 300000 and the second album\'s budget to 300000', $output);
         $this->assertStringContainsString('Transaction complete.', $output);
+    }
+
+    /**
+     * @depends testInsertData
+     */
+    public function testReadLockMode()
+    {
+        $output = $this->runFunctionSnippet('read_lock_mode');
+        $this->assertStringContainsString('Current Album Title:', $output);
+        $this->assertStringContainsString('record(s) updated.', $output);
+    }
+
+    /**
+     * @depends testInsertData
+     */
+    public function testIsolationLevel()
+    {
+        $output = $this->runFunctionSnippet('isolation_level');
+        $this->assertStringContainsString('Current Album Title:', $output);
+        $this->assertStringContainsString('record(s) updated.', $output);
     }
 
     /**
