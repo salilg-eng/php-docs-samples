@@ -48,7 +48,7 @@ class ObjectsTest extends TestCase
             sprintf('%s-test-bucket-%s', self::$projectId, uniqid())
         );
         $bucketName = $objectContextsBucket->name();
-        $objectName = 'object-contexts-'.uniqid();
+        $objectName = 'object-contexts-'. uniqid();
         $object = $objectContextsBucket->upload('test', [
             'name' => $objectName,
         ]);
