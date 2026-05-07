@@ -37,7 +37,11 @@ function list_object_contexts(string $bucketName): void
     $storage = new StorageClient();
     $bucket = $storage->bucket($bucketName);
 
-    // Example filter: find objects where department is finance
+    // Examples of filters based on contexts:
+    // 1. Objects with a specific key attached: 'contexts:"department"'
+    // 2. Objects WITHOUT a specific key attached: '-contexts:"department"'
+    // 3. Objects with a specific key-value pair: 'contexts."department"="finance"'
+    // 4. Objects WITHOUT a specific key-value pair: '-contexts."department"="finance"'
     $options = [
         'filter' => 'contexts."department"="finance"'
     ];
