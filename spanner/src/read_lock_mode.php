@@ -61,8 +61,8 @@ function read_lock_mode(string $instanceId, string $databaseId): void
         // Update the AlbumTitle.
         $rowCount = $t->executeUpdate('UPDATE Albums SET AlbumTitle = \'A New Title\' WHERE SingerId = 2 and AlbumId = 1');
 
-	// Commit the transaction!
-	$t->commit();
+        // Commit the transaction!
+        $t->commit();
 
         printf('%d record(s) updated.' . PHP_EOL, $rowCount);
     }, [
